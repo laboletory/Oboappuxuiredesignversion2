@@ -13,15 +13,6 @@
       --tw-skew-y: skewY(0);
       --tw-space-y-reverse: 0;
       --tw-border-style: solid;
-      --tw-gradient-position: initial;
-      --tw-gradient-from: #0000;
-      --tw-gradient-via: #0000;
-      --tw-gradient-to: #0000;
-      --tw-gradient-stops: initial;
-      --tw-gradient-via-stops: initial;
-      --tw-gradient-from-position: 0%;
-      --tw-gradient-via-position: 50%;
-      --tw-gradient-to-position: 100%;
       --tw-leading: initial;
       --tw-font-weight: initial;
       --tw-tracking: initial;
@@ -497,10 +488,6 @@
     inset-block: calc(var(--spacing) * 0);
   }
 
-  .-top-0\.5 {
-    top: calc(var(--spacing) * -.5);
-  }
-
   .top-0 {
     top: calc(var(--spacing) * 0);
   }
@@ -523,10 +510,6 @@
 
   .top-full {
     top: 100%;
-  }
-
-  .-right-0\.5 {
-    right: calc(var(--spacing) * -.5);
   }
 
   .right-0 {
@@ -1300,10 +1283,6 @@
     border-style: dashed;
   }
 
-  .border-background {
-    border-color: var(--background);
-  }
-
   .border-border {
     border-color: var(--border);
   }
@@ -1372,10 +1351,6 @@
 
   .border-white {
     border-color: var(--color-white);
-  }
-
-  .bg-\[\#3b82f6\] {
-    background-color: #3b82f6;
   }
 
   .bg-background {
@@ -1534,25 +1509,6 @@
     .bg-white\/40 {
       background-color: color-mix(in oklab, var(--color-white) 40%, transparent);
     }
-  }
-
-  .bg-gradient-to-br {
-    --tw-gradient-position: to bottom right in oklab;
-    background-image: linear-gradient(var(--tw-gradient-stops));
-  }
-
-  .bg-\[radial-gradient\(circle_at_30\%_30\%\,rgba\(255\,255\,255\,0\.15\)_0\%\,transparent_60\%\)\] {
-    background-image: radial-gradient(circle at 30% 30%, #ffffff26 0%, #0000 60%);
-  }
-
-  .from-primary {
-    --tw-gradient-from: var(--primary);
-    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
-  }
-
-  .to-\[\#1e3a8a\] {
-    --tw-gradient-to: #1e3a8a;
-    --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
   }
 
   .fill-current {
@@ -3054,57 +3010,6 @@ html {
   syntax: "*";
   inherits: false;
   initial-value: solid;
-}
-
-@property --tw-gradient-position {
-  syntax: "*";
-  inherits: false
-}
-
-@property --tw-gradient-from {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-
-@property --tw-gradient-via {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-
-@property --tw-gradient-to {
-  syntax: "<color>";
-  inherits: false;
-  initial-value: #0000;
-}
-
-@property --tw-gradient-stops {
-  syntax: "*";
-  inherits: false
-}
-
-@property --tw-gradient-via-stops {
-  syntax: "*";
-  inherits: false
-}
-
-@property --tw-gradient-from-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 0%;
-}
-
-@property --tw-gradient-via-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 50%;
-}
-
-@property --tw-gradient-to-position {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 100%;
 }
 
 @property --tw-leading {
