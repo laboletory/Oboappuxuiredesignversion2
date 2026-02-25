@@ -89,7 +89,7 @@ export function ZoneCardWithAccordion({
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                      className="h-8 w-8 p-0 text-muted-foreground/60 hover:text-muted-foreground hover:bg-accent"
                     >
                       <MoreVertical size={16} />
                     </Button>
