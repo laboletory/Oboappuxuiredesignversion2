@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Zone, Event, CategoryType, Notification } from '../types';
 import { MapView } from './MapView';
-import { ZoneCard } from './ZoneCard';
+import { ZoneCardWithAccordion } from './ZoneCardWithAccordion';
 import { EventCard } from './EventCard';
 import { CategoryFilter } from './CategoryFilter';
 import { EventDetailDialog } from './EventDetailDialog';
 import { ZoneEditor } from './ZoneEditor';
-import { DetailPanel } from './DetailPanel';
 import { DetailPanelContent } from './DetailPanelContent';
 import { GlobalCategoriesSettings } from './GlobalCategoriesSettings';
 import { NotificationDropdown } from './NotificationDropdown';
@@ -14,7 +13,7 @@ import { AppLogo } from './AppLogo';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Badge } from './ui/badge';
-import { Plus, Settings, Bell, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, Settings, Bell, SlidersHorizontal, X, LogIn, MapPin } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -29,6 +28,7 @@ interface HomeScreenProps {
   events: Event[];
   notifications: Notification[];
   isDeviceSubscribed: boolean;
+  isLoggedIn: boolean;
   globalCategories: CategoryType[];
   onGlobalCategoriesChange: (categories: CategoryType[]) => void;
   onCreateZone: (zone: Omit<Zone, 'id' | 'activeEventsCount'>) => void;
@@ -43,6 +43,7 @@ export function HomeScreen({
   events,
   notifications,
   isDeviceSubscribed,
+  isLoggedIn,
   globalCategories,
   onGlobalCategoriesChange,
   onCreateZone, 
@@ -59,6 +60,8 @@ export function HomeScreen({
   const [isCreatingZone, setIsCreatingZone] = useState(false);
   const [filterCategories, setFilterCategories] = useState<CategoryType[]>([]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [expandedZoneId, setExpandedZoneId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('events'); // Always default to events
 
   const handleToggleCategory = (category: CategoryType) => {
     setFilterCategories(prev => 
@@ -214,17 +217,9 @@ export function HomeScreen({
               </div>
             ) : (
               /* Normal Tabs View */
-              <Tabs defaultValue="zones" className="flex-1 flex flex-col min-h-0">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
                 <div className="flex items-center justify-between mb-4">
                   <TabsList>
-                    <TabsTrigger value="zones">
-                      Моите зони
-                      {zones.length > 0 && (
-                        <Badge variant="secondary" className="ml-2">
-                          {zones.length}
-                        </Badge>
-                      )}
-                    </TabsTrigger>
                     <TabsTrigger value="events">
                       Събития
                       {filteredEvents.length > 0 && (
@@ -233,31 +228,65 @@ export function HomeScreen({
                         </Badge>
                       )}
                     </TabsTrigger>
+                    <TabsTrigger value="zones">
+                      Моите зони
+                      {zones.length > 0 && isLoggedIn && (
+                        <Badge variant="secondary" className="ml-2">
+                          {zones.length}
+                        </Badge>
+                      )}
+                    </TabsTrigger>
                   </TabsList>
                 </div>
 
                 <div className="flex-1 overflow-hidden flex flex-col min-h-0">
                   <TabsContent value="zones" className="flex-1 overflow-y-auto mt-0 space-y-3 pr-2">
-                    {zones.map(zone => (
-                      <ZoneCard
-                        key={zone.id}
-                        zone={zone}
-                        globalCategories={globalCategories}
-                        onClick={() => setSelectedZone(zone)}
-                        onEdit={() => setEditingZone(zone)}
-                        onDelete={() => onDeleteZone(zone.id)}
-                        onTogglePause={() => onUpdateZone(zone.id, { isPaused: !zone.isPaused })}
-                      />
-                    ))}
-                    
-                    <Button
-                      variant="outline"
-                      className="w-full border-dashed"
-                      onClick={() => setIsCreatingZone(true)}
-                    >
-                      <Plus size={18} className="mr-2" />
-                      Добави зона
-                    </Button>
+                    {!isLoggedIn ? (
+                      /* Not logged in state - Feature gated, not disabled */
+                      <div className="text-center py-12 px-6">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                          <MapPin size={32} className="text-primary" />
+                        </div>
+                        <h3 className="font-semibold text-lg mb-2">Персонализирай известията</h3>
+                        <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
+                          Създай зони за местата, които са важни за теб, и получавай известия само за събития в тях.
+                        </p>
+                        <Button variant="default" className="w-full">
+                          <LogIn size={16} className="mr-2" />
+                          Вход в системата
+                        </Button>
+                      </div>
+                    ) : (
+                      /* Logged in state */
+                      <>
+                        {zones.map(zone => (
+                          <ZoneCardWithAccordion
+                            key={zone.id}
+                            zone={zone}
+                            events={events}
+                            globalCategories={globalCategories}
+                            isExpanded={expandedZoneId === zone.id}
+                            onToggleExpand={() => {
+                              setExpandedZoneId(expandedZoneId === zone.id ? null : zone.id);
+                            }}
+                            onClick={() => setSelectedZone(zone)}
+                            onEdit={() => setEditingZone(zone)}
+                            onDelete={() => onDeleteZone(zone.id)}
+                            onTogglePause={() => onUpdateZone(zone.id, { isPaused: !zone.isPaused })}
+                            onEventClick={(event) => setDetailPanelEvent(event)}
+                          />
+                        ))}
+                        
+                        <Button
+                          variant="outline"
+                          className="w-full border-dashed"
+                          onClick={() => setIsCreatingZone(true)}
+                        >
+                          <Plus size={18} className="mr-2" />
+                          Добави зона
+                        </Button>
+                      </>
+                    )}
                   </TabsContent>
 
                   <TabsContent value="events" className="flex-1 overflow-y-auto mt-0 space-y-3 pr-2">

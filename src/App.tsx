@@ -29,6 +29,7 @@ function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [view, setView] = useState<'desktop' | 'mobile' | 'design'>('desktop');
   const [isDeviceSubscribed, setIsDeviceSubscribed] = useState(false); // Mock subscription status
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Mock authentication status
 
   const handleGlobalCategoriesChange = (categories: CategoryType[]) => {
     setSettings(prev => ({
@@ -142,7 +143,15 @@ function App() {
 
       {/* Demo Controls */}
       {view !== 'design' && (
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsLoggedIn(!isLoggedIn)}
+            className="bg-card shadow-lg"
+          >
+            {isLoggedIn ? 'LOGOUT' : 'LOGIN'}
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -161,6 +170,7 @@ function App() {
           events={events}
           notifications={notifications}
           isDeviceSubscribed={isDeviceSubscribed}
+          isLoggedIn={isLoggedIn}
           globalCategories={settings.globalCategories}
           onGlobalCategoriesChange={handleGlobalCategoriesChange}
           onCreateZone={handleCreateZone}
@@ -212,6 +222,7 @@ function App() {
               events={events}
               notifications={notifications}
               isDeviceSubscribed={isDeviceSubscribed}
+              isLoggedIn={isLoggedIn}
               globalCategories={settings.globalCategories}
               onGlobalCategoriesChange={handleGlobalCategoriesChange}
               onCreateZone={handleCreateZone}
