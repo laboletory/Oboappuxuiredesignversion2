@@ -1,18 +1,8 @@
 import { useState } from 'react';
-import { Zone, Event, CategoryType, Notification } from '../types';
-import { MapView } from './MapView';
-import { ZoneCard } from './ZoneCard';
-import { EventCard } from './EventCard';
-import { CategoryFilter } from './CategoryFilter';
-import { MobileEventDetail } from './MobileEventDetail';
-import { ZoneEditor } from './ZoneEditor';
-import { DetailPanel } from './DetailPanel';
-import { GlobalCategoriesSettings } from './GlobalCategoriesSettings';
-import { NotificationDropdown } from './NotificationDropdown';
-import { AppLogo } from './AppLogo';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Plus, Settings, Bell, Menu, SlidersHorizontal } from 'lucide-react';
+import { Plus, Settings, Bell, Menu, SlidersHorizontal, MapPin, LogIn } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import {
   Sheet,
   SheetContent,
@@ -21,12 +11,22 @@ import {
   SheetTitle,
   SheetTrigger,
 } from './ui/sheet';
+import { Zone, Event, Notification, CategoryType } from '../types';
+import { MapView } from './MapView';
+import { EventCard } from './EventCard';
+import { ZoneCard } from './ZoneCard';
+import { MobileEventDetail } from './MobileEventDetail';
+import { ZoneEditor } from './ZoneEditor';
+import { NotificationDropdown } from './NotificationDropdown';
+import { AppLogo } from './AppLogo';
+import { CategoryFilter } from './CategoryFilter';
 
 interface MobileHomeScreenProps {
   zones: Zone[];
   events: Event[];
   notifications: Notification[];
   isDeviceSubscribed: boolean;
+  isLoggedIn: boolean;
   globalCategories: CategoryType[];
   onGlobalCategoriesChange: (categories: CategoryType[]) => void;
   onCreateZone: (zone: Omit<Zone, 'id' | 'activeEventsCount'>) => void;
@@ -41,6 +41,7 @@ export function MobileHomeScreen({
   events,
   notifications,
   isDeviceSubscribed,
+  isLoggedIn,
   globalCategories,
   onGlobalCategoriesChange,
   onCreateZone, onUpdateZone, 
@@ -56,6 +57,7 @@ export function MobileHomeScreen({
   const [isCreatingZone, setIsCreatingZone] = useState(false);
   const [filterCategories, setFilterCategories] = useState<CategoryType[]>([]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('events'); // Mobile tab state
 
   const handleToggleCategory = (category: CategoryType) => {
     setFilterCategories(prev => 
@@ -69,9 +71,17 @@ export function MobileHomeScreen({
     ? events.filter(e => filterCategories.includes(e.category))
     : events;
 
-  const activeEventsCount = events.filter(e => 
-    zones.some(z => e.affectedZones.includes(z.id) && !z.isPaused)
-  ).length;
+  // Calculate active events count based on login state
+  const activeEventsCount = isLoggedIn 
+    ? events.filter(e => 
+        zones.some(z => e.affectedZones.includes(z.id) && !z.isPaused)
+      ).length
+    : events.length; // For logged-out users, show all events in the area
+  
+  // Determine label text based on login state
+  const activeEventsLabel = isLoggedIn
+    ? `${activeEventsCount} активни ${activeEventsCount === 1 ? 'събитие' : 'събития'} във вашите зони`
+    : `${activeEventsCount} активни ${activeEventsCount === 1 ? 'събитие' : 'събития'} в района`;
   
   // Calculate category counts for all events
   const categoryCounts = events.reduce((acc, event) => {
@@ -88,8 +98,10 @@ export function MobileHomeScreen({
           
           <div className="flex items-center gap-2">
             {activeEventsCount > 0 && (
-              <Badge variant="default" className="text-xs">
-                {activeEventsCount}
+              <Badge variant="default" className="text-xs whitespace-nowrap">
+                {isLoggedIn 
+                  ? `${activeEventsCount} във вашите зони`
+                  : `${activeEventsCount} в района`}
               </Badge>
             )}
             <NotificationDropdown
@@ -170,59 +182,111 @@ export function MobileHomeScreen({
       {/* Bottom Sheet - Zones & Events (hidden when detail is open) */}
       {!selectedEvent && (
         <div className="bg-card border-t border-border">
-          {/* Zone Pills */}
-          <div className="px-4 py-3 border-b border-border overflow-x-auto">
-            <div className="flex gap-2 min-w-max">
-              {zones.map(zone => (
-                <button
-                  key={zone.id}
-                  onClick={() => setEditingZone(zone)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 transition-colors"
-                >
-                  <div 
-                    className="w-2 h-2 rounded-full" 
-                    style={{ backgroundColor: zone.color }}
-                  />
-                  <span className="text-sm font-medium">{zone.name}</span>
-                  {zone.activeEventsCount > 0 && (
-                    <Badge variant="default" className="h-5 text-xs">
-                      {zone.activeEventsCount}
-                    </Badge>
-                  )}
-                </button>
-              ))}
-              {zones.length === 0 && (
-                <p className="text-sm text-muted-foreground">Все още няма зони</p>
-              )}
-            </div>
-          </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full grid grid-cols-2 rounded-none border-b border-border h-12 bg-transparent p-0">
+              <TabsTrigger 
+                value="events" 
+                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
+              >
+                Събития
+              </TabsTrigger>
+              <TabsTrigger 
+                value="zones"
+                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
+              >
+                Моите зони
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Events List */}
-          <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="font-semibold">Последни събития</h2>
-              <span className="text-xs text-muted-foreground">
-                {filteredEvents.length} {filteredEvents.length === 1 ? 'събитие' : 'събития'}
-              </span>
-            </div>
-            
-            {filteredEvents.length > 0 ? (
-              filteredEvents.slice(0, 3).map(event => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  zones={zones}
-                  onClick={() => setSelectedEvent(event)}
-                  onHover={setHoveredEventId}
-                />
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <Bell size={32} className="mx-auto mb-2 text-muted-foreground opacity-30" />
-                <p className="text-sm text-muted-foreground">Няма активни събития</p>
+            {/* Eventi Tab Content */}
+            <TabsContent value="events" className="mt-0">
+              <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="font-semibold">Последни събития</h2>
+                  <span className="text-xs text-muted-foreground">
+                    {filteredEvents.length} {filteredEvents.length === 1 ? 'събитие' : 'събития'}
+                  </span>
+                </div>
+                
+                {filteredEvents.length > 0 ? (
+                  filteredEvents.slice(0, 3).map(event => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      zones={zones}
+                      onClick={() => setSelectedEvent(event)}
+                      onHover={setHoveredEventId}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Bell size={32} className="mx-auto mb-2 text-muted-foreground opacity-30" />
+                    <p className="text-sm text-muted-foreground">
+                      {filterCategories.length > 0 
+                        ? 'Няма събития, които отговарят на филтрите'
+                        : isLoggedIn 
+                          ? 'Няма активни събития във вашите зони'
+                          : 'Няма активни събития в района'}
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </TabsContent>
+
+            {/* My Zones Tab Content */}
+            <TabsContent value="zones" className="mt-0">
+              <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
+                {!isLoggedIn ? (
+                  /* Not logged in state - Feature gated */
+                  <div className="text-center py-8 px-4">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                      <MapPin size={24} className="text-primary" />
+                    </div>
+                    <h3 className="font-semibold mb-2">Персонализирай известията</h3>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Създай зони за местата, които са важни за теб, и получавай известия само за събития в тях.
+                    </p>
+                    <Button variant="default" size="sm" className="w-full">
+                      <LogIn size={16} className="mr-2" />
+                      Вход в системата
+                    </Button>
+                  </div>
+                ) : zones.length > 0 ? (
+                  zones.map(zone => (
+                    <ZoneCard
+                      key={zone.id}
+                      zone={zone}
+                      globalCategories={globalCategories}
+                      onEdit={() => setEditingZone(zone)}
+                      onDelete={() => {
+                        if (confirm(`Сигурен ли си, че искаш да изтриеш зона "${zone.name}"?`)) {
+                          onDeleteZone(zone.id);
+                        }
+                      }}
+                      onTogglePause={() => {
+                        onUpdateZone(zone.id, { isPaused: !zone.isPaused });
+                      }}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <MapPin size={32} className="mx-auto mb-2 text-muted-foreground opacity-30" />
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Все още няма създадени зони
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsCreatingZone(true)}
+                    >
+                      <Plus size={16} className="mr-2" />
+                      Създай първата си зона
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
 

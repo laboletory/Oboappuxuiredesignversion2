@@ -75,9 +75,17 @@ export function HomeScreen({
     ? events.filter(e => filterCategories.includes(e.category))
     : events;
 
-  const activeEventsCount = events.filter(e => 
-    zones.some(z => e.affectedZones.includes(z.id) && !z.isPaused)
-  ).length;
+  // Calculate active events count based on login state
+  const activeEventsCount = isLoggedIn 
+    ? events.filter(e => 
+        zones.some(z => e.affectedZones.includes(z.id) && !z.isPaused)
+      ).length
+    : events.length; // For logged-out users, show all events in the area
+  
+  // Determine label text based on login state
+  const activeEventsLabel = isLoggedIn
+    ? `${activeEventsCount} активни ${activeEventsCount === 1 ? 'събитие' : 'събития'} във вашите зони`
+    : `${activeEventsCount} активни ${activeEventsCount === 1 ? 'събитие' : 'събития'} в района`;
   
   // Calculate category counts for all events
   const categoryCounts = events.reduce((acc, event) => {
@@ -95,7 +103,7 @@ export function HomeScreen({
           <div className="flex items-center gap-2">
             {activeEventsCount > 0 && (
               <Badge variant="default">
-                {activeEventsCount} активни {activeEventsCount === 1 ? 'събитие' : 'събития'}
+                {activeEventsLabel}
               </Badge>
             )}
             <GlobalCategoriesSettings

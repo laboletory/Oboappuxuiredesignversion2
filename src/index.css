@@ -986,10 +986,6 @@
     min-width: 8rem;
   }
 
-  .min-w-max {
-    min-width: max-content;
-  }
-
   .flex-1 {
     flex: 1;
   }
@@ -1184,10 +1180,6 @@
     overflow: hidden;
   }
 
-  .overflow-x-auto {
-    overflow-x: auto;
-  }
-
   .overflow-x-hidden {
     overflow-x: hidden;
   }
@@ -1214,6 +1206,10 @@
 
   .rounded-md {
     border-radius: calc(var(--radius)  - 2px);
+  }
+
+  .rounded-none {
+    border-radius: 0;
   }
 
   .rounded-sm {
@@ -2135,18 +2131,6 @@
   }
 
   @media (hover: hover) {
-    .hover\:bg-muted\/80:hover {
-      background-color: var(--muted);
-    }
-
-    @supports (color: color-mix(in lab, red, red)) {
-      .hover\:bg-muted\/80:hover {
-        background-color: color-mix(in oklab, var(--muted) 80%, transparent);
-      }
-    }
-  }
-
-  @media (hover: hover) {
     .hover\:bg-primary\/90:hover {
       background-color: var(--primary);
     }
@@ -2418,6 +2402,15 @@
 
   .data-\[side\=top\]\:slide-in-from-bottom-2[data-side="top"] {
     --tw-enter-translate-y: calc(2 * var(--spacing));
+  }
+
+  .data-\[state\=active\]\:border-b-2[data-state="active"] {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 2px;
+  }
+
+  .data-\[state\=active\]\:border-primary[data-state="active"] {
+    border-color: var(--primary);
   }
 
   .data-\[state\=active\]\:bg-card[data-state="active"] {
