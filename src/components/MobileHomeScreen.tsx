@@ -14,7 +14,7 @@ import {
 import { Zone, Event, Notification, CategoryType } from '../types';
 import { MapView } from './MapView';
 import { EventCard } from './EventCard';
-import { ZoneCard } from './ZoneCard';
+import { ZoneCardWithAccordion } from './ZoneCardWithAccordion';
 import { MobileEventDetail } from './MobileEventDetail';
 import { ZoneEditor } from './ZoneEditor';
 import { NotificationDropdown } from './NotificationDropdown';
@@ -58,6 +58,7 @@ export function MobileHomeScreen({
   const [filterCategories, setFilterCategories] = useState<CategoryType[]>([]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('events'); // Mobile tab state
+  const [expandedZoneId, setExpandedZoneId] = useState<string | null>(null); // Accordion state for zones
 
   const handleToggleCategory = (category: CategoryType) => {
     setFilterCategories(prev => 
@@ -183,18 +184,28 @@ export function MobileHomeScreen({
       {!selectedEvent && (
         <div className="bg-card border-t border-border">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full grid grid-cols-2 rounded-none border-b border-border h-12 bg-transparent p-0">
+            <TabsList className="w-full grid grid-cols-2 rounded-none border-b border-border h-auto bg-transparent p-0 gap-0">
               <TabsTrigger 
                 value="events" 
-                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary transition-all duration-200 h-14 px-4 gap-2 font-medium data-[state=active]:bg-primary/5"
               >
-                Събития
+                <span>Събития</span>
+                {filteredEvents.length > 0 && (
+                  <Badge variant="secondary" className="h-5 min-w-[20px] px-1.5 text-xs font-semibold data-[state=active]:bg-primary/10">
+                    {filteredEvents.length}
+                  </Badge>
+                )}
               </TabsTrigger>
               <TabsTrigger 
                 value="zones"
-                className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary transition-all duration-200 h-14 px-4 gap-2 font-medium data-[state=active]:bg-primary/5"
               >
-                Моите зони
+                <span>Моите зони</span>
+                {zones.length > 0 && isLoggedIn && (
+                  <Badge variant="secondary" className="h-5 min-w-[20px] px-1.5 text-xs font-semibold">
+                    {zones.length}
+                  </Badge>
+                )}
               </TabsTrigger>
             </TabsList>
 
@@ -253,10 +264,15 @@ export function MobileHomeScreen({
                   </div>
                 ) : zones.length > 0 ? (
                   zones.map(zone => (
-                    <ZoneCard
+                    <ZoneCardWithAccordion
                       key={zone.id}
                       zone={zone}
+                      events={events}
                       globalCategories={globalCategories}
+                      isExpanded={expandedZoneId === zone.id}
+                      onToggleExpand={() => {
+                        setExpandedZoneId(expandedZoneId === zone.id ? null : zone.id);
+                      }}
                       onEdit={() => setEditingZone(zone)}
                       onDelete={() => {
                         if (confirm(`Сигурен ли си, че искаш да изтриеш зона "${zone.name}"?`)) {
@@ -266,6 +282,7 @@ export function MobileHomeScreen({
                       onTogglePause={() => {
                         onUpdateZone(zone.id, { isPaused: !zone.isPaused });
                       }}
+                      onEventClick={(event) => setSelectedEvent(event)}
                     />
                   ))
                 ) : (
